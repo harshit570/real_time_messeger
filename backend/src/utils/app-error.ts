@@ -36,7 +36,7 @@ export class NotFoundException extends AppError{
   }
 }
 
-export class BadRequestError extends AppError{
+export class BadRequestException extends AppError{
   constructor(
     message:string="Bad Request"
   ){

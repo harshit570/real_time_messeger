@@ -17,7 +17,7 @@ passport.use(
     audience:['user'],
     algorithms:['HS256'],
   },
-  async (userId, done) => {
+  async ({userId}, done) => {
     try {
       const user= userId && (await findByIdUserService(userId));
       return done(null,user||false)
