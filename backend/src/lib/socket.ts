@@ -2,12 +2,16 @@ import { Server as HTTPServer } from "http";
 import jwt from "jsonwebtoken";
 import { Server, type Socket } from "socket.io";
 import { Env } from "../config/env.config";
+import { validateChatParticipant } from "../services/chat.service";
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
 }
 
 let io: Server | null = null;
+
+const onlineUsers = new Map<string, string>();  
+
 export const initializeSocket = (httpServer: HTTPServer) => {
   io = new Server(httpServer, {
     cors: {
@@ -38,4 +42,70 @@ export const initializeSocket = (httpServer: HTTPServer) => {
     }
   });
 
+  io.on("connection", (socket: AuthenticatedSocket) => {
+    if (!socket.userId) {
+      socket.disconnect(true);
+      return;
+    }
+    const userId = socket.userId;
+    const newSocketId = socket.id;
+
+    console.log("socket connected", { userId, newSocketId });
+
+    // register socket for the user
+    onlineUsers.set(userId, newSocketId);
+
+    // brodcast online users to all sockets
+    io?.emit("online:users",Array.from(onlineUsers.keys()))
+
+  // create personal room for the user
+    socket.join(`user:${userId}`);
+
+    socket.on("chat:join",async(chatId:string, callback?:(err?:string)=>void)=>{
+      try{
+        await validateChatParticipant(chatId,userId);
+        socket.join(`chat:${chatId}`);
+        callback?.();
+      }catch(error){
+        callback?.("Error joining chat");
+      }
+    })
+
+    socket.on("chat:leave",(chatId:string)=>{
+      if(chatId){
+        socket.leave(`chat:${chatId}`); 
+        console.log(`User ${userId} left room chat:${chatId}`)
+      }
+    })
+
+    socket.on("disconnect",()=>{
+      if(onlineUsers.get(userId)===newSocketId){
+        if(userId) onlineUsers.delete(userId);
+
+        // brodcast online users to all sockets
+        io?.emit("online:users",Array.from(onlineUsers.keys()))
+
+        console.log("socket disconnected",{
+          userId,
+          newSocketId
+        })
+      }
+    })
+  });
 };
+
+function getIO(){
+  if(!io)throw new Error("socket.IO not initialized");
+  return io;
+}
+
+export const emitNewChatParticipants=(
+  participantIds:string[]=[],
+  chat:any
+)=>{
+  const io=getIO();
+   for(const participantId of participantIds){
+    io.to(`user:${participantId}`).emit("chat:new",chat);
+   }
+  
+}
