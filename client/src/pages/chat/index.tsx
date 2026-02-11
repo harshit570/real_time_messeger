@@ -1,7 +1,8 @@
+import EmptyState from "@/components/empty-state";
 
 const Chat = () => {
   return (
-    <div>index</div>
+    <div className="hidden lg:block h-svh"><EmptyState/></div>
   )
 }
 
