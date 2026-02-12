@@ -1,4 +1,4 @@
-import { emitNewChatParticipants } from "../lib/socket";
+import { emitNewChatToParticipants } from "../lib/socket";
 import ChatModel from "../models/chat.model";
 import MessageModel from "../models/message.model";
 import UserModel from "../models/user.model";
@@ -19,7 +19,7 @@ export const createChatService=async(
   let allParticipantIds:string[]=[];
 
   if(isGroup && participants?.length && groupName){
-    allParticipantIds=[...participants,userId];
+    allParticipantIds=[userId,...participants];
     chat=await ChatModel.create({
       isGroup:true,
       groupName,
@@ -51,7 +51,7 @@ export const createChatService=async(
     return p._id?.toString();
   })
 
-  emitNewChatParticipants(particpantIdStrings,populatedChat);
+  emitNewChatToParticipants(particpantIdStrings,populatedChat);
   return chat;
 }
 

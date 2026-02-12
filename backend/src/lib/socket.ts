@@ -99,7 +99,7 @@ function getIO(){
   return io;
 }
 
-export const emitNewChatParticipants=(
+export const emitNewChatToParticipants=(
   participantIds:string[]=[],
   chat:any
 )=>{
@@ -116,7 +116,7 @@ export const emitNewMessageToChatRoom=(
   message:any
 )=>{
    const io=getIO()
-   const senderSocketId=onlineUsers.get(senderId);
+   const senderSocketId=onlineUsers.get(senderId?.toString());
 
    if(senderSocketId){
     io.to(`chat:${chatId}`).except(senderSocketId).emit("message:new",message);

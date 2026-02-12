@@ -109,6 +109,7 @@ const ChatFooter = ({
         )}
         <Form {...form}>
           <form
+            // eslint-disable-next-line react-hooks/refs
             onSubmit={form.handleSubmit(onSubmit)}
             className="max-w-6xl px-8.5 mx-auto
             flex items-end gap-2
