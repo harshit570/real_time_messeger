@@ -1,21 +1,30 @@
 import UserModel from "../models/user.model";
 import { NotFoundException, UnauthorizedException } from "../utils/app-error";
-import { LoginSchemaType, RegisterSchemaType } from "../validators/auth.validator";
+import {
+  LoginSchemaType,
+  RegisterSchemaType,
+} from "../validators/auth.validator";
 
-export const registerService=async(body:RegisterSchemaType)=>{
-   const {email}=body;
-  const existngUser=await UserModel.findOne({email});
-  if(existngUser) throw new UnauthorizedException("User already exists");
-  const newUser=new UserModel({...body});
+export const registerService = async (body: RegisterSchemaType) => {
+  const { email } = body;
+  const existngUser = await UserModel.findOne({ email });
+  if (existngUser) throw new UnauthorizedException("User already exists");
+  const newUser = new UserModel({
+    name: body.name,
+    email: body.email,
+    password: body.password,
+    avatar: body.avatar,
+  });
   await newUser.save();
   return newUser;
-}
+};
 
-export const loginService=async(body:LoginSchemaType)=>{
-  const {email,password}=body;
-  const user=await UserModel.findOne({email});
-  if(!user) throw new NotFoundException("Email or Password not found");
-  const isPasswordValid=await user.comparePassword(password);
-  if(!isPasswordValid) throw new UnauthorizedException("Invalid email or Password");
+export const loginService = async (body: LoginSchemaType) => {
+  const { email, password } = body;
+  const user = await UserModel.findOne({ email });
+  if (!user) throw new NotFoundException("Email or Password not found");
+  const isPasswordValid = await user.comparePassword(password);
+  if (!isPasswordValid)
+    throw new UnauthorizedException("Invalid email or Password");
   return user;
-}
+};

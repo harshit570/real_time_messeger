@@ -35,7 +35,7 @@ export const createChatService=async(
    allParticipantIds=[userId,participantId];
    const existingChat=await ChatModel.findOne({
     participants:{$all:allParticipantIds,$size:2}
-   }).populate("participants","name avatar");
+   }).populate("participants","name avatar isAI");
 
     if(existingChat) return existingChat;
 
@@ -46,7 +46,7 @@ export const createChatService=async(
     });
   }
   // Implement Websocket
-  const populatedChat=await chat?.populate("participants","name avatar")
+  const populatedChat=await chat?.populate("participants","name avatar isAI")
   const particpantIdStrings=populatedChat?.participants?.map((p)=>{
     return p._id?.toString();
   })
@@ -58,7 +58,7 @@ export const createChatService=async(
 export const getUserChatsService=async(userId:string)=>{
   const chats=await ChatModel.find({
     participants:{$in:[userId]}
-  }).populate("participants","name avatar")
+  }).populate("participants","name avatar isAI")
   .populate({
     path:"lastMessage",
     populate:{
@@ -75,7 +75,7 @@ export const getSingleChatService = async (chatId: string, userId: string) => {
     participants: {
       $in: [userId],
     },
-  }).populate("participants", "name avatar");
+  }).populate("participants", "name avatar isAI");
 
   if (!chat)
     throw new BadRequestException(
@@ -83,13 +83,13 @@ export const getSingleChatService = async (chatId: string, userId: string) => {
     );
 
   const messages = await MessageModel.find({ chatId })
-    .populate("sender", "name avatar")
+    .populate("sender", "name avatar isAI")
     .populate({
       path: "replyTo",
       select: "content image sender",
       populate: {
         path: "sender",
-        select: "name avatar",
+        select: "name avatar isAI",
       },
     })
     .sort({ createdAt: 1 });
