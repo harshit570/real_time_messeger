@@ -13,6 +13,7 @@ import { initializeSocket } from "./lib/socket";
 import routes from "./routes";
 
 import "./config/passport.config"
+import path from "path";
 
 const app=express();
 const server=http.createServer(app);
@@ -39,7 +40,18 @@ app.get("/health",asyncHandler(async(req:Request,res:Response,next:NextFunction)
 })
 );
 
-app.use("/api",routes)
+app.use("/api",routes);
+
+if(Env.NODE_ENV==="production"){
+  const clientPath=path.resolve(__dirname,"../../client/dist");
+
+  //Serve the static file
+  app.use(express.static(clientPath))
+
+  app.get(/^(?!\/api).*/,(req:Request,res:Response)=>{
+    res.sendFile(path.join(clientPath,"index.html"));
+  });
+}
 
 app.use(errorHandler)
 
